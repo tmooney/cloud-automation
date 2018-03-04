@@ -11,3 +11,4 @@ terraform
 *.env
 *~
 *.swp
+*.DS_Store
