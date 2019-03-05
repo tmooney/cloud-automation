@@ -6,6 +6,8 @@ terraform {
 
 provider "aws" {}
 
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_role" "server_node" {
   name = "server_node"
 
@@ -36,7 +38,7 @@ resource "aws_iam_role_policy" "server_node" {
       "Action": [
         "sts:AssumeRole"
       ],
-      "Resource": "${aws_iam_role.server_role.arn}"
+      "Resource": "arn:aws:iam:${data.aws_caller_identity.current.account_id}:role/kiam-server"
     }
     ]
   }
@@ -60,7 +62,7 @@ resource "aws_iam_role" "server_role" {
       "Sid": "",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "${aws_iam_role.server_node.arn}"
+        "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/server_node"
       },
       "Action": "sts:AssumeRole"
     }
