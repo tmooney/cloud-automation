@@ -54,6 +54,10 @@ default_md        = sha256
 preserve          = no
 policy            = policy_strict
 
+# Honor extensions requested of us
+# used for allowing csr to add subjectAltName extension
+copy_extensions	= copy
+
 [ policy_strict ]
 # The root CA should only sign intermediate certificates that match.
 # See the POLICY FORMAT section of 'man ca'.
@@ -112,5 +116,35 @@ for name in $service_list external; do
       g3kubectl create secret generic "cert-$name" "--from-file=service.crt=credentials/${name}.crt" "--from-file=service.key=credentials/${name}.key"
     fi
 done
+
+# create mountable secret for kiam server
+if !([[ -f "credentials/kiam-server.crt" && -f "credentials/kiam-server.key" ]]); then
+  cat credentials/openssl.cnf > credentials/kiam-server.cnf
+  cat <<EOF >> credentials/kiam-server.cnf
+[ req ]
+distinguished_name = req_distinguished_name
+req_extensions     = req_ext
+
+[ req_distinguished_name ]
+CN=kiam-server
+
+[ req_ext ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = kiam-server
+DNS.2 = 127.0.0.1
+DNS.3 = localhost
+IP.1 = 127.0.0.1
+EOF
+  SUBJ="/countryName=US/stateOrProvinceName=IL/localityName=Chicago/organizationName=CDIS/organizationalUnitName=Software/commonName=kiam-server/emailAddress=cdis@uchicago.edu"
+  openssl genrsa -out "credentials/kiam-server.key" 2048
+  openssl req -new -key "credentials/kiam-server.key" -out "credentials/kiam-server.csr" -subj "$SUBJ" -config "credentials/kiam-server.cnf"
+  openssl ca -batch -in "credentials/kiam-server.csr" -config credentials/kiam-server.cnf -extensions server_cert -days 375 -notext -out "credentials/kiam-server.crt"
+  g3kubectl create secret generic kiam-server-tls -n kube-system \
+   --from-file=credentials/ca.pem \
+   --from-file=credentials/kiam-server.crt \
+   --from-file=credentials/kiam-server.key
+fi
 
 gen3 secrets commit "saving new TLS certs"

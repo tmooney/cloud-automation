@@ -160,6 +160,8 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/account_management-logs"
   elif [[ "$GEN3_WORKSPACE" =~ _squidauto$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_auto"
+  elif [[ "$GEN3_WORKSPACE" =~ _kiam$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/kiam"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -437,6 +439,9 @@ EOM
     return 0
   fi
 
+  if [[ "$GEN3_WORKSPACE" =~ _kiam$ ]]; then
+    return 0
+  fi
 
   # ssh key to be added to VMs and kube nodes
   local SSHADD=$(which ssh-add)

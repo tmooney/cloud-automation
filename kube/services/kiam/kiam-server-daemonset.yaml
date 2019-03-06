@@ -6,7 +6,7 @@ metadata:
 spec:
   template:
     metadata:
-      annotations:
+      # annotations:
         # prometheus.io/scrape: "true"
         # prometheus.io/port: "9620"
       labels:
@@ -14,8 +14,8 @@ spec:
         role: server
     spec:
       serviceAccountName: kiam-server
-      nodeSelector:
-        kubernetes.io/role: master
+      # nodeSelector:
+      #   kubernetes.io/role: master
       volumes:
         - name: ssl-certs
           hostPath:
@@ -27,8 +27,13 @@ spec:
             secretName: kiam-server-tls
       containers:
         - name: kiam
-          image: quay.io/uswitch/kiam:master # USE A TAGGED RELEASE IN PRODUCTION
+          image: quay.io/uswitch/kiam:v3.1 # USE A TAGGED RELEASE IN PRODUCTION
           imagePullPolicy: Always
+          env:
+            - name: GRPC_GO_LOG_SEVERITY_LEVEL
+              value: "info"
+            - name: GRPC_GO_LOG_VERBOSITY_LEVEL
+              value: "8"
           command:
             - /kiam
           args:
@@ -36,8 +41,8 @@ spec:
             - --json-log
             - --level=warn
             - --bind=0.0.0.0:443
-            - --cert=/etc/kiam/tls/server.pem
-            - --key=/etc/kiam/tls/server-key.pem
+            - --cert=/etc/kiam/tls/kiam-server.crt
+            - --key=/etc/kiam/tls/kiam-server.key
             - --ca=/etc/kiam/tls/ca.pem
             - --role-base-arn-autodetect
             - --sync=1m
@@ -53,12 +58,12 @@ spec:
               command:
               - /kiam
               - health
-              - --cert=/etc/kiam/tls/server.pem
-              - --key=/etc/kiam/tls/server-key.pem
+              - --cert=/etc/kiam/tls/kiam-server.crt
+              - --key=/etc/kiam/tls/kiam-server.key
               - --ca=/etc/kiam/tls/ca.pem
               - --server-address=127.0.0.1:443
-              - --gateway-timeout-creation=1s
-              - --timeout=5s
+              - --gateway-timeout-creation=10s
+              - --timeout=20s
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 10
@@ -67,12 +72,12 @@ spec:
               command:
               - /kiam
               - health
-              - --cert=/etc/kiam/tls/server.pem
-              - --key=/etc/kiam/tls/server-key.pem
+              - --cert=/etc/kiam/tls/kiam-server.crt
+              - --key=/etc/kiam/tls/kiam-server.key
               - --ca=/etc/kiam/tls/ca.pem
               - --server-address=127.0.0.1:443
-              - --gateway-timeout-creation=1s
-              - --timeout=5s
+              - --gateway-timeout-creation=10s
+              - --timeout=20s
             initialDelaySeconds: 3
             periodSeconds: 10
             timeoutSeconds: 10
