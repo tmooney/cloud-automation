@@ -1,0 +1,38 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: aws-iam-tester
+  labels:
+    app: aws-iam-tester
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: aws-iam-tester
+  template:
+    metadata:
+      labels:
+        app: aws-iam-tester
+      annotations:
+        iam.amazonaws.com/role: bucket_writer_tedtest1-databucket-gen3
+    spec:
+      nodeSelector:
+        kubernetes.io/role: node
+      nodeName: TAINTED_NODE_NAME
+      tolerations:
+       - key: kiam
+         value: kiam
+         effect: NoSchedule
+      containers:
+      - name: aws-iam-tester
+        image: garland/aws-cli-docker:latest
+        imagePullPolicy: Always
+        command:
+          - /bin/sleep
+        args:
+          - "3600"
+        env:
+          - name: AWS_DEFAULT_REGION
+            value: us-east-1
