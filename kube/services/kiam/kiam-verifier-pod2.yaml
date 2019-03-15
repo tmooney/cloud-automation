@@ -7,7 +7,10 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0 
   selector:
     matchLabels:
       app: aws-iam-tester
@@ -18,16 +21,17 @@ spec:
       annotations:
         iam.amazonaws.com/role: bucket_writer_tedtest1-databucket-gen3
     spec:
-      nodeSelector:
-        kubernetes.io/role: node
-      nodeName: TAINTED_NODE_NAME
+      nodeName: ip-172-24-68-184.ec2.internal
       tolerations:
        - key: kiam
          value: kiam
          effect: NoSchedule
+       - key: role
+         value: jupyter
+         effect: NoSchedule
       containers:
       - name: aws-iam-tester
-        image: garland/aws-cli-docker:latest
+        image: mesosphere/aws-cli:latest
         imagePullPolicy: Always
         command:
           - /bin/sleep

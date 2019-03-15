@@ -20,8 +20,8 @@ spec:
         - name: ssl-certs
           hostPath:
             # for AWS linux or RHEL distros
-            # path: /etc/pki/ca-trust/extracted/pem/
-            path: /usr/share/ca-certificates
+            path: /etc/pki/ca-trust/extracted/pem/
+            # path: /usr/share/ca-certificates
         - name: tls
           secret:
             secretName: kiam-server-tls
@@ -30,10 +30,11 @@ spec:
           image: quay.io/uswitch/kiam:v3.1 # USE A TAGGED RELEASE IN PRODUCTION
           imagePullPolicy: Always
           env:
-            - name: KIAM_SERVER_ROLE_ARN
-              valueFrom:
-                name: manifest-global
-                value: kiam_server_role_arn
+            # - name: KIAM_SERVER_ROLE_ARN
+            #   valueFrom:
+            #     configMapKeyRef:
+            #       name: manifest-global
+            #       key: kiam_server_role_arn
             - name: GRPC_GO_LOG_SEVERITY_LEVEL
               value: "info"
             - name: GRPC_GO_LOG_VERBOSITY_LEVEL
@@ -43,13 +44,13 @@ spec:
           args:
             - server
             - --json-log
-            - --level=warn
+            - --level=info
             - --bind=0.0.0.0:443
             - --cert=/etc/kiam/tls/kiam-server.crt
             - --key=/etc/kiam/tls/kiam-server.key
             - --ca=/etc/kiam/tls/ca.pem
             - --role-base-arn-autodetect
-            - --assume-role-arn ${KIAM_SERVER_ROLE_ARN}
+            - --assume-role-arn=arn:aws:iam::707767160287:role/kiam-server
             - --sync=1m
             # - --prometheus-listen-addr=0.0.0.0:9620
             # - --prometheus-sync-interval=5s

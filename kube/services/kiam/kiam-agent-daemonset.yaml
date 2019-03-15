@@ -15,14 +15,24 @@ spec:
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
-      nodeSelector:
-        kubernetes.io/role: node
+      # nodeSelector:
+      #   kubernetes.io/role: node
+      nodeName: "ip-172-24-68-184.ec2.internal" # Remove after testing
+      tolerations: # Remove section after testing
+      - key: "kiam"
+        operator: "Equal"
+        value: "kiam"
+        effect: "NoSchedule"
+      - key: "role"
+        operator: "Equal"
+        value: "jupyter"
+        effect: "NoSchedule"
       volumes:
         - name: ssl-certs
           hostPath:
             # for AWS linux or RHEL distros
-            #path: /etc/pki/ca-trust/extracted/pem/
-            path: /usr/share/ca-certificates
+            path: /etc/pki/ca-trust/extracted/pem/
+            # path: /usr/share/ca-certificates
         - name: tls
           secret:
             secretName: kiam-agent-tls
