@@ -19,24 +19,21 @@ spec:
       labels:
         app: aws-iam-tester
       annotations:
-        iam.amazonaws.com/role: bucket_writer_tedtest1-databucket-gen3
+        iam.amazonaws.com/role: bucket_reader_tedtest1-databucket-gen3
     spec:
-      nodeName: ip-172-24-68-184.ec2.internal
+      nodeName: ip-172-24-68-185.ec2.internal
       tolerations:
-       - key: kiam
-         value: kiam
-         effect: NoSchedule
-       - key: role
-         value: jupyter
-         effect: NoSchedule
+        - key: kiam
+          value: kiam
+          effect: NoSchedule
+        - key: role
+          value: jupyter
+          effect: NoSchedule
       containers:
       - name: aws-iam-tester
-        image: mesosphere/aws-cli:latest
+        image: garland/aws-cli-docker:latest
         imagePullPolicy: Always
         command:
           - /bin/sleep
         args:
           - "3600"
-        env:
-          - name: AWS_DEFAULT_REGION
-            value: us-east-1

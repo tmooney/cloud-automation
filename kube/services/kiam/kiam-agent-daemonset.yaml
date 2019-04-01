@@ -17,7 +17,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       # nodeSelector:
       #   kubernetes.io/role: node
-      nodeName: "ip-172-24-68-184.ec2.internal" # Remove after testing
+      nodeName: "ip-172-24-68-185.ec2.internal" # Remove after testing
       tolerations: # Remove section after testing
       - key: "kiam"
         operator: "Equal"
@@ -52,7 +52,7 @@ spec:
           args:
             - agent
             - --iptables
-            - --host-interface=cali+
+            - --host-interface=!eth0
             - --json-log
             - --port=8181
             - --cert=/etc/kiam/tls/kiam-agent.crt
@@ -67,6 +67,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            - name: GRPC_GO_LOG_SEVERITY_LEVEL
+              value: "info"
+            - name: GRPC_GO_LOG_VERBOSITY_LEVEL
+              value: "8"
           volumeMounts:
             - mountPath: /etc/ssl/certs
               name: ssl-certs
