@@ -47,7 +47,18 @@ def md5ObjectSum(bucketName, objectName):
 			back = back + step
 
 	guid = str(uuid.uuid4())
-	print guid + '\t' + hash_md5.hexdigest() + '\t' + str(size) + '\t' + 'PROJECT-ID' + '\t' + 's3://' + bucketName + '/' + objectName
+	line = guid + '\t' + hash_md5.hexdigest() + '\t' + str(size) + '\t' + 'PROJECT-ID' + '\t' + 's3://' + bucketName + '/' + objectName
+	
+	fileName = "output/" + objectName + ".tsv"
+	print "we are writing to " + fileName
+	with open(fileName, 'w+') as f:
+		f.write(line)
+		print "putting the manifest file for object back into s3"
+		bucket.put_object(Body = line.encode(), Key = fileName)
+
+
+	print line
+
 	return hash_md5.hexdigest()
 
 if __name__ == '__main__':
