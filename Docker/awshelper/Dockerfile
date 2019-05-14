@@ -73,10 +73,12 @@ USER ubuntu
 RUN python2 -m pip install boto3
 COPY ./md5_stream.py md5_stream.py
 
+RUN mkdir output && mkdir output/log
+
 # install and set up gen3
 RUN git clone https://github.com/uc-cdis/cloud-automation.git ~/cloud-automation \
     && echo "export GEN3_HOME=~/cloud-automation" >> ~/.bashrc \
     && echo "export ESHOST=esproxy-service:9200" >> ~/.bashrc \
     && echo 'source "${GEN3_HOME}/gen3/gen3setup.sh"' >> ~/.bashrc 
-    
+
 CMD /bin/bash
