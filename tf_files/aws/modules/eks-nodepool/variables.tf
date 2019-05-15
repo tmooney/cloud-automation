@@ -9,7 +9,7 @@ variable "instance_type" {
   default = "t3.large"
 }
 
-variable "jupyter_instance_type"{
+variable "nodepool_instance_type"{
   default = "t3.medium"
 }
 
@@ -39,7 +39,7 @@ variable "control_plane_sg" {}
 
 variable "default_nodepool_sg" {}
 
-variable "deploy_jupyter_pool" {
+variable "deploy_nodepool" {
   default = "no"
 }
 
@@ -53,7 +53,7 @@ variable "bootstrap_script" {
   default = "bootstrap-2.0.0.sh"
 }
 
-variable "jupyter_worker_drive_size" {
+variable "nodepool_worker_drive_size" {
   default = 30
 }
 

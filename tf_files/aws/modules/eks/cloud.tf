@@ -21,15 +21,37 @@ module "jupyter_pool" {
   eks_private_subnets       = "${aws_subnet.eks_private.*.id}"
   control_plane_sg          = "${aws_security_group.eks_control_plane_sg.id}"
   default_nodepool_sg       = "${aws_security_group.eks_nodes_sg.id}"
-  deploy_jupyter_pool       = "${var.deploy_jupyter_pool}"
+  deploy_nodepool           = "${var.deploy_jupyter_pool}"
   eks_version               = "${var.eks_version}"
-  jupyter_instance_type     = "${var.jupyter_instance_type}"
+  nodepool_instance_type    = "${var.jupyter_instance_type}"
   kernel                    = "${var.kernel}"
   bootstrap_script          = "${var.jupyter_bootstrap_script}"
-  jupyter_worker_drive_size = "${var.jupyter_worker_drive_size}"
+  nodepool_worker_drive_size = "${var.jupyter_worker_drive_size}"
   organization_name         = "${var.organization_name}"
 }
 
+module "kiam_pool" {
+  source                     = "../eks-nodepool/"
+  ec2_keyname                = "${var.ec2_keyname}"
+  users_policy               = "${var.users_policy}"
+  nodepool                   = "kiamserver"
+  vpc_name                   = "${var.vpc_name}"
+  #csoc_cidr                 = "${var.csoc_cidr}"
+  #csoc_cidr                 = "${data.aws_vpc.peering_vpc.cidr_block}"
+  csoc_cidr                  = "${var.peering_cidr}"
+  eks_cluster_endpoint       = "${aws_eks_cluster.eks_cluster.endpoint}"
+  eks_cluster_ca             = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
+  eks_private_subnets        = "${aws_subnet.eks_private.*.id}"
+  control_plane_sg           = "${aws_security_group.eks_control_plane_sg.id}"
+  default_nodepool_sg        = "${aws_security_group.eks_nodes_sg.id}"
+  deploy_nodepool            = "${var.deploy_kiam_pool}"
+  eks_version                = "${var.eks_version}"
+  nodepool_instance_type     = "${var.kiam_instance_type}"
+  kernel                     = "${var.kernel}"
+  bootstrap_script           = "${var.kiam_bootstrap_script}"
+  nodepool_worker_drive_size = "${var.kiam_worker_drive_size}"
+  organization_name          = "${var.organization_name}"
+}
 
 
 
@@ -527,8 +549,8 @@ resource "aws_security_group_rule" "nodes_internode_communications" {
   self              = true
 }
 
-# Let's allow the two polls talk to each other
-resource "aws_security_group_rule" "nodes_interpool_communications" {
+# Let's allow the two pools talk to each other
+resource "aws_security_group_rule" "jupyter_nodes_interpool_communications" {
   type                     = "ingress"
   from_port                = 0
   to_port                  = 0
@@ -538,6 +560,16 @@ resource "aws_security_group_rule" "nodes_interpool_communications" {
   source_security_group_id = "${module.jupyter_pool.nodepool_sg}"
 }
 
+# Let's allow the two pools talk to each other
+resource "aws_security_group_rule" "kiam_nodes_interpool_communications" {
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"
+  description              = "allow kiam nodes to talk to the default"
+  security_group_id        = "${aws_security_group.eks_nodes_sg.id}"
+  source_security_group_id = "${module.kiam_pool.nodepool_sg}"
+}
 
 ## Worker Node AutoScaling Group
 # Now we have everything in place to create and manage EC2 instances that will serve as our worker nodes
@@ -674,6 +706,11 @@ data:
         - system:bootstrappers
         - system:nodes
     - rolearn: ${module.jupyter_pool.nodepool_role}
+      username: system:node:{{EC2PrivateDNSName}}
+      groups:
+        - system:bootstrappers
+        - system:nodes
+    - rolearn: ${module.kiam_pool.nodepool_role}
       username: system:node:{{EC2PrivateDNSName}}
       groups:
         - system:bootstrappers
