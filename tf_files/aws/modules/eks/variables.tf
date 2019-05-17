@@ -13,6 +13,10 @@ variable "jupyter_instance_type"{
   default = "t3.medium"
 }
 
+variable "kiam_instance_type"{
+  default = "t3.medium"
+}
+
 #variable "csoc_cidr" {
 variable "peering_cidr" {
   default = "10.128.0.0/20"
@@ -36,6 +40,10 @@ variable "deploy_jupyter_pool" {
   default = "no"
 }
 
+variable "deploy_kiam_pool" {
+  default = "no"
+}
+
 variable "workers_subnet_size" {
   default = 24
 }
@@ -52,7 +60,15 @@ variable "jupyter_bootstrap_script" {
   default =  "bootstrap-2.0.0.sh"
 }
 
+variable "kiam_bootstrap_script" {
+  default =  "bootstrap-2.0.0.sh"
+}
+
 variable "jupyter_worker_drive_size" {
+  default = 30
+}
+
+variable "kiam_worker_drive_size" {
   default = 30
 }
 
