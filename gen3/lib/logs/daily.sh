@@ -13,13 +13,13 @@ gen3_logs_fetch_aggs() {
   local dayArg
 
   if [[ $# -lt 1 ]]; then
-    gen3_log_err "gen3_logs_fetch_aggs" "must pass dayArg to query for aggregations"
+    gen3_log_err "must pass dayArg to query for aggregations"
     return 1
   fi
   dayArg="$1"
   aggsFile="$(mktemp "$XDG_RUNTIME_DIR/aggsfetch.json_XXXXXX")"
 
-  gen3_log_info "gen3_logs_fetch_aggs" "collecting daily aggregations for $dayArg"
+  gen3_log_info "collecting daily aggregations for $dayArg"
   gen3_logs_rawlog_search "aggs=yes" "vpc=all" "start=$dayArg 00:00" "end=$dayArg + 1 day 00:00" > "$aggsFile"
   # this will fail if the data is not json
   if jq -e -r . > /dev/null 2>&1 < "$aggsFile"; then
@@ -27,7 +27,7 @@ gen3_logs_fetch_aggs() {
     rm "$aggsFile"
     return 0
   else
-    gen3_log_err "gen3_logs_fetch_aggs" "failed verifying query results ..."
+    gen3_log_err "failed verifying query results ..."
     cat "$aggsFile" 1>&2
     rm "$aggsFile"
     return 1
@@ -69,7 +69,7 @@ gen3_logs_save_daily() {
     }
 }
 '; then
-      gen3_log_err "gen3_logs_save_daily" "failed to setup index mapping"
+      gen3_log_err "failed to setup index mapping"
       return 1
     fi
   fi
@@ -86,7 +86,7 @@ gen3_logs_save_daily() {
 
   # ES is a bit flaky - retry a couple times
   if ! gen3_retry gen3_logs_fetch_aggs "$dayArg" > "$aggsFile"; then
-    gen3_log_err "gen3_logs_daily_save" "failed to retrieve aggregations"
+    gen3_log_err "failed to retrieve aggregations"
     rm "$aggsFile"
     return 1
   fi
@@ -96,7 +96,7 @@ gen3_logs_save_daily() {
     # fetch the data for this vpc
     hostname="$(gen3_logs_vpc_list | grep -e "^${vpcName} " | awk '{ print $2 }')"
     if [[ -z "$hostname" ]]; then
-      gen3_log_err "gen3_logs_save_daily" "no hostname mapping for $vpcName"
+      gen3_log_err "no hostname mapping for $vpcName"
       hostname="$vpcName"
     fi
     usercount="$(jq -r ".aggregations.vpc.buckets | map(select(.key==\"$vpcName\")) | .[0] | .unique_user_count.value" < "$aggsFile" )"
@@ -109,14 +109,14 @@ gen3_logs_save_daily() {
   "unique_users": $usercount
 }
 EOM
-      gen3_log_info "gen3_logs_save_daily" "saving $docId"
+      gen3_log_info "saving $docId"
       cat "$docFile" 1>&2
       # update the document
       if ! gen3_retry gen3_logs_curl200 "$GEN3_AGGS_DAILY/infodoc/${docId}?pretty=true" -i -X PUT "-d@$docFile" 1>&2; then
-        gen3_log_err "gen3_logs_save_daily" "failed to save user count for vpc $vpcName"
+        gen3_log_err "failed to save user count for vpc $vpcName"
       fi
     else
-      gen3_log_err "gen3_logs_save_daily" "failed to extract user count for vpc $vpcName"
+      gen3_log_err "failed to extract user count for vpc $vpcName"
     fi
   done
   rm "$aggsFile"

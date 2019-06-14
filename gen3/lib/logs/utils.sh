@@ -31,7 +31,7 @@ gen3_logs_curl() {
     # ES /_bulk API wants application/ndjson ... 
     ctype="application/ndjson"
   fi
-  gen3_log_info "gen3_logs_curl" "$fullPath"
+  gen3_log_info "$fullPath"
   curl -s -u "${LOGUSER}:${LOGPASSWORD}" -H "Content-Type: $ctype" "$fullPath" "$@"
 }
 
@@ -58,7 +58,7 @@ gen3_logs_curl200() {
   result=0
   path="$1"
   if ! gen3_logs_curl "$@" -i > "$tempFile"; then
-    gen3_log_err "gen3_logs_curl200" "non-zero exit from curl $path"
+    gen3_log_err "non-zero exit from curl $path"
     cat "$tempFile" 1>&2
     result=1
   elif httpStatus="$(awk -f "$GEN3_HOME/gen3/lib/curl200Status.awk" < "$tempFile")" && [[ "$httpStatus" == 200  || "$httpStatus" == 201 ]]; then
@@ -68,7 +68,7 @@ gen3_logs_curl200() {
     awk -f "$GEN3_HOME/gen3/lib/curl200Body.awk" < "$tempFile"
     result=0
   else
-    gen3_log_err "gen3_logs_curl200" "non-200 from curl $path"
+    gen3_log_err "non-200 from curl $path"
     cat "$tempFile" 1>&2
     result=1
   fi
@@ -94,7 +94,7 @@ gen3_logs_curljson() {
     result=0
   else
     result=1
-    gen3_log_err "gen3_logs_curljson" "non json output from $path"
+    gen3_log_err "non json output from $path"
     cat "$tempFile" 1>&2
   fi
   rm "$tempFile"
@@ -152,7 +152,7 @@ gen3_logs_vpc_list() {
 #
 gen3_logs_get_arg() {
   if [[ $# -lt 2 || -z "$1" || "$1" =~ /=/ ]]; then
-    gen3_log_err "gen3_logs_get_arg" "no valid key to gen3_logs_get_arg"
+    gen3_log_err "no valid key to gen3_logs_get_arg"
     echo ""
     return 1
   fi

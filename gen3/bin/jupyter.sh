@@ -62,10 +62,10 @@ gen3_jupyter_namespace_setup() {
   notebookNamespace="$(gen3_jupyter_namespace)"
 
   if ! g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
-    gen3_log_info "gen3_jupyter_namespace_setup" "creating k8s namespace: ${notebookNamespace}" 
+    gen3_log_info "creating k8s namespace: ${notebookNamespace}" 
     g3kubectl create namespace "${notebookNamespace}"
   else
-    gen3_log_info "gen3_jupyter_namespace_setup" "I think k8s namespace ${notebookNamespace} already exists"
+    gen3_log_info "I think k8s namespace ${notebookNamespace} already exists"
   fi
   g3kubectl label namespace "${notebookNamespace}" "role=usercode" > /dev/null 2>&1 || true
   g3kubectl label namespace "${namespace}" "role=gen3" > /dev/null 2>&1 || true
@@ -81,7 +81,7 @@ gen3_jupyter_upgrade() {
   local notebookNamespace
   notebookNamespace="$(gen3_jupyter_namespace)"
   if ! g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
-    gen3_log_err "gen3_jupyter_upgrade" "refusing to upgrade jupyter - namespace does not exist $notebookNamespace"
+    gen3_log_err "refusing to upgrade jupyter - namespace does not exist $notebookNamespace"
     return 1
   fi
   

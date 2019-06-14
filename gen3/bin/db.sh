@@ -34,13 +34,13 @@ gen3_db_farm_json() {
 gen3_db_reset() {
   local serviceName
   if [[ $# -lt 1 || -z "$1" ]]; then
-    gen3_log_err "gen3_db_reset" "must specify serviceName"
+    gen3_log_err "must specify serviceName"
     return 1
   fi
 
   serviceName="$1"
   if [[ "$serviceName" == "$peregrine" ]]; then
-    gen3_log_err "gen3_db_reset" "may not reset peregrine - only sheepdog"
+    gen3_log_err "may not reset peregrine - only sheepdog"
     return 1
   fi
 
@@ -86,13 +86,13 @@ gen3_db_reset() {
   if [[ "$serviceName" == "sheepdog" ]]; then 
     # special case - peregrine shares the database
     # Make sure peregrine has permission to read the sheepdog db tables
-    gen3_log_info "gen3_db_reset" "granting db access permissions to peregrine"
+    gen3_log_info "granting db access permissions to peregrine"
     local peregrine_db_user;
     peregrine_db_user="$(g3kubectl get secrets peregrine-creds -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_username)"
     if [[ -n "$peregrine_db_user" ]]; then
       gen3 psql sheepdog -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO $peregrine_db_user; ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"
     else
-      gen3_log_warn "gen3_db_reset" "unable to determine peregrine db username"
+      gen3_log_warn "unable to determine peregrine db username"
     fi
   fi
 
@@ -170,7 +170,7 @@ gen3_db_service_creds() {
   dbcredsPath="$(gen3_secrets_folder)/g3auto/${key}/dbcreds.json"
   tempResult="$(mktemp "$XDG_RUNTIME_DIR/tempCreds.json_XXXXXX")"
   if [[ -z "$key" ]]; then
-    gen3_log_err "gen3_db_service_creds: No serviceName specified"
+    gen3_log_err "No serviceName specified"
     return 1
   fi
   
@@ -185,7 +185,7 @@ gen3_db_service_creds() {
   elif [[ -z "$JENKINS_HOME" && -f "$credsPath" ]] && (jq -e -r ".[\"$key\"]" < "$credsPath" > "$tempResult"); then
     true
   else
-    gen3_log_err "gen3_db_service_creds - unable to find ${key}-creds k8s secret or creds.json"
+    gen3_log_err "unable to find ${key}-creds k8s secret or creds.json"
     rm "$tempResult"
     return 1
   fi
@@ -230,7 +230,7 @@ gen3_db_server_list() {
 gen3_db_server_info() {
   local server
   if [[ $# -lt 1 ]]; then
-    gen3_log_err "gen3_db_server_info must specify server - gen3_db_server_list lists servers"
+    gen3_log_err "must specify server - gen3_db_server_list lists servers"
     echo null
     return 1
   fi
@@ -249,7 +249,7 @@ gen3_db_list() {
   shift
 
   if ! gen3_db_validate_server "$server"; then
-    gen3_log_err "gen3_db_list requires server name"
+    gen3_log_err "requires server name"
     return 1
   fi
   gen3_db_psql "$server" --list | awk -F '|' '{ gsub(/ /, "", $1); if($1 != ""){ print $1 } }' | tail -n +4 | head -n -1
@@ -264,7 +264,7 @@ gen3_db_user_list() {
   shift
 
   if ! gen3_db_validate_server "$server"; then
-    gen3_log_err "gen3_db_list requires server name"
+    gen3_log_err "requires server name"
     return 1
   fi
   gen3_db_psql "$server" -c 'SELECT u.usename FROM pg_catalog.pg_user u' | awk -F '|' '{ gsub(/ /, "", $1); if($1 != ""){ print $1 } }' | tail -n +3 | head -n -1
@@ -296,7 +296,7 @@ gen3_db_psql() {
   shift
   
   if [[ -z "$key" ]]; then
-    gen3_log_err "gen3_db_psql: No target specified"
+    gen3_log_err "No target specified"
     return 1
   fi
 
@@ -310,14 +310,14 @@ gen3_db_psql() {
   
   if [[ "$key" =~ ^server[0-9]+$ ]]; then
     if ! gen3_db_server_info "$key" > "$credsPath"; then
-      gen3_log_err "gen3_db_psql - unable to find creds for server $key"
+      gen3_log_err "unable to find creds for server $key"
       rm -rf "$credsPath"
       return 1
     fi
     database=template1
   else
     if ! gen3_db_service_creds "$key" > "$credsPath"; then
-      gen3_log_err "gen3_db_psql - unable to find creds for service $key"
+      gen3_log_err "unable to find creds for service $key"
       rm -rf "$credsPath"
       return 1
     fi
@@ -391,7 +391,7 @@ gen3_db_service_setup() {
 
   server=""
   if [[ $# -lt 1 ]]; then
-    gen3_log_err "gen3_db_setup SERVICE [SERVER]"
+    gen3_log_err "SERVICE [SERVER]"
     return 1
   fi
 
@@ -402,26 +402,26 @@ gen3_db_service_setup() {
     shift
   fi
   if [[ "$service" =~ ^server || (! $service =~ ^[a-z][a-z0-9_]{0,}$) ]]; then
-    gen3_log_err "gen3_db_setup illegal service name: $service"
+    gen3_log_err "illegal service name: $service"
     return 1
   fi
   if [[ -n "$JENKINS_HOME" ]]; then
-    gen3_log_err "gen3_db_setup NOOP in JENKINS"
+    gen3_log_err "NOOP in JENKINS"
     return 1
   fi
   if [[ ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
-    gen3_log_err "gen3_db_setup requires $(gen3_secrets_folder)/creds.json"
+    gen3_log_err "requires $(gen3_secrets_folder)/creds.json"
     return 1
   fi
   if gen3_db_service_creds "$service" > /dev/null 2>&1; then
-    gen3_log_err "gen3_db_service_setup - db creds already exist for service $service"
+    gen3_log_err "db creds already exist for service $service"
     return 1
   fi
   if [[ -z "$server" ]]; then
     server="$(gen3_db_random_server)"
   fi
   if ! gen3_db_validate_server "$server"; then
-    gen3_log_err "gen3_db_setup invalid server $server"
+    gen3_log_err "invalid server $server"
     return 1
   fi
   
@@ -439,22 +439,22 @@ gen3_db_service_setup() {
 
   for it in $(gen3_db_list "$server"); do
     if [[ "$it" == "$dbname" ]]; then
-      gen3_log_err "gen3_db_service_setup" "$dbname database already exists on server $it"
+      gen3_log_err "$dbname database already exists on server $it"
       return 1
     fi
   done
   for it in $(gen3_db_user_list "$server"); do
     if [[ "$it" == "$username" ]]; then
-      gen3_log_err "gen3_db_service_setup" "$username user already exists on server $it"
+      gen3_log_err "$username user already exists on server $it"
       return 1
     fi
   done
   if ! gen3_db_psql "$server" -c "CREATE DATABASE \"${dbname}\";"; then
-    gen3_log_err "gen3_db_service_setup" "CREATE DATABASE $dbname failed"
+    gen3_log_err "CREATE DATABASE $dbname failed"
     return 1
   fi
   if ! gen3_db_psql "$server" -c "CREATE USER \"$username\" WITH PASSWORD '$password'; GRANT ALL ON DATABASE \"$dbname\" TO \"$username\" WITH GRANT OPTION;"; then
-    gen3_log_err "gen3_db_service_setup" "CREATE USER $username failed"
+    gen3_log_err "CREATE USER $username failed"
     # try to clean up
     gen3_db_psql "$server" -c "DROP DATABASE \"${dbname}\";"
     return 1

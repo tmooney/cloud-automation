@@ -240,15 +240,15 @@ function gen3_time_since() {
 }
 
 gen3_log_err() {
-  echo -e "$(red_color "ERROR: $(date +%T) - $*")" 1>&2
+  echo -e "$(red_color "ERROR:($(gen3_callstack 2)) $(date +%T) - $*")" 1>&2
 }
 
 gen3_log_info() {
-  echo -e "$(green_color "INFO: $(date +%T) -") $*" 1>&2
+  echo -e "$(green_color "INFO:($(gen3_callstack 2)) $(date +%T) -") $*" 1>&2
 }
 
 gen3_log_warn() {
-  echo -e "$(red_color "WARNING: $(date +%T) -") $*" 1>&2
+  echo -e "$(red_color "WARNING:($(gen3_callstack 2)) $(date +%T) -") $*" 1>&2
 }
 
 #
@@ -278,17 +278,17 @@ gen3_retry() {
   fi
 
   if [[ $# -lt 1 ]]; then
-    gen3_log_err "gen3_retry" "cannot retry empty command"
+    gen3_log_err "cannot retry empty command"
     return 1
   fi
   while ! "$@"; do
-    gen3_log_warn "gen3_retry" "command failed - $*"
+    gen3_log_warn "command failed - $*"
     retryCount=$((retryCount + 1))
     if [[ "$retryCount" -gt "$maxRetries" ]]; then
-      gen3_log_err "gen3_retry" "no more retries for failed command - $*"
+      gen3_log_err "no more retries for failed command - $*"
       return 1
     else
-      gen3_log_info "gen3_retry" "sleep $sleepTime, then retry - $*"
+      gen3_log_info "sleep $sleepTime, then retry - $*"
       sleep "$sleepTime"
       sleepTime=$((sleepTime + sleepTime))
     fi
@@ -302,4 +302,32 @@ gen3_retry() {
 #
 gen3_is_number() {
   [[ $# == 1 && "$1" =~ ^[0-9]+$ ]]
+}
+
+#
+# Helper to get the name of the current function
+#
+# @param stackLevel 0 returns "gen3_callstack", 1 its caller, 2 its caller's caller, ...
+#
+gen3_callstack() {
+  local stackLevel
+  stackLevel="${1:-1}"
+  (
+    # ugh - zsh!
+    if [[ -z "${BASH_VERSION}" ]]; then
+      set -o BASH_REMATCH  # zsh signal
+      set -o KSH_ARRAYS
+      if [[ ${#funcstack[@]} -gt "$stackLevel" ]]; then
+        echo "${funcstack[$stackLevel]}"
+      else
+        echo "main"
+      fi
+    else
+      if [[ ${#FUNCNAME[@]} -gt "$stackLevel" ]]; then
+        echo "${FUNCNAME[$stackLevel]}"
+      else
+        echo "main"
+      fi
+    fi
+  )
 }

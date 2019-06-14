@@ -79,7 +79,7 @@ EOM
     result=$?
   else
     result=1
-    gen3_log_err "gen3_logs_ubh" "query failed json validation"
+    gen3_log_err "query failed json validation"
     cat "$queryFile" 1>&2
   fi
   rm "$queryFile"
@@ -109,7 +109,7 @@ gen3_logs_ubh_setup() {
     }
 }
 '; then
-      gen3_log_err "gen3_logs_ubh_setup" "failed to setup index mapping"
+      gen3_log_err "failed to setup index mapping"
       return 1
     fi
   fi
@@ -157,31 +157,31 @@ gen3_logs_ubh_save() {
   newDocFile="$(mktemp "$XDG_RUNTIME_DIR/doc.ndjson_XXXXXX")"
   totalDocs=0
   # ES is a bit flaky - retry a couple times
-  gen3_log_info "gen3_logs_ubh_save" "loading unique users from $startArg to + 12 hours"
+  gen3_log_info "loading unique users from $startArg to + 12 hours"
   if ! gen3_retry gen3_logs_ubh_raw vpc=all "start=$startArg" "end=$startArg + 12 hours" > "$rawDataFile"; then
-    gen3_log_err "gen3_logs_ubh_save" "failed to retrieve aggregations"
+    gen3_log_err "failed to retrieve aggregations"
     rm "$rawDataFile"
     return 1
   fi
 
-  gen3_log_info "gen3_logs_ubh_save" "scanning user data"
+  gen3_log_info "scanning user data"
   cat "$rawDataFile" 1>&2
   numVpc="$(jq -e -r '.aggregations.by_vpc.buckets | length' < "$rawDataFile")"; 
   if ! gen3_is_number "$numVpc"; then
-    gen3_log_err "gen3_logs_ubh_save" "failed to parse numVpc"
+    gen3_log_err "failed to parse numVpc"
     return 1
   fi
   for ((itVpc=0; itVpc<numVpc; itVpc++)); do
     vpcName="$(jq -e -r ".aggregations.by_vpc.buckets[$itVpc].key" < "$rawDataFile")"
     numHour="$(jq -e -r ".aggregations.by_vpc.buckets[$itVpc].by_hour.buckets | length" < "$rawDataFile")"
     if ! gen3_is_number "$numHour"; then
-      gen3_log_err "gen3_logs_ubh_save" "failed to parse numHour"
+      gen3_log_err "failed to parse numHour"
       return 1
     fi
     # fetch the data for this vpc
     hostname="$(gen3_logs_vpc_list | grep -e "^${vpcName} " | awk '{ print $2 }')"
     if [[ -z "$hostname" ]]; then
-      gen3_log_err "gen3_logs_ubh_save" "no hostname mapping for $vpcName"
+      gen3_log_err "no hostname mapping for $vpcName"
       hostname="$vpcName"
     fi
     
@@ -190,14 +190,14 @@ gen3_logs_ubh_save() {
       hourName="$(jq -e -r ".aggregations.by_vpc.buckets[$itVpc].by_hour.buckets[$itHour].key" < "$rawDataFile" | sed -E 's/[0-9]{3,3}$//')"
       numUser="$(jq -e -r ".aggregations.by_vpc.buckets[$itVpc].by_hour.buckets[$itHour].by_user.buckets | length" < "$rawDataFile")"
       if ! gen3_is_number "$numUser"; then
-        gen3_log_err "gen3_logs_ubh_save" "failed to parse numUser"
+        gen3_log_err "failed to parse numUser"
         return 1
       fi
       for ((itUser=0; itUser<numUser; itUser++)); do
         userName="$(jq -e -r ".aggregations.by_vpc.buckets[$itVpc].by_hour.buckets[$itHour].by_user.buckets[$itUser].key" < "$rawDataFile")"
         numDoc="$(jq -e -r ".aggregations.by_vpc.buckets[$itVpc].by_hour.buckets[$itHour].by_user.buckets[$itUser].doc_count" < "$rawDataFile")"
         if ! gen3_is_number "$numDoc"; then
-          gen3_log_err "gen3_logs_ubh_save" "failed to parse numDoc"
+          gen3_log_err "failed to parse numDoc"
           return 1
         fi
         docId="$(echo "${vpcName}-${hourName}-${userName}" | sed -e 's/[^a-zA-Z0-9-]/_/g')"
@@ -217,18 +217,18 @@ EOM
   resultCode=0
 
   if [[ "$totalDocs" -gt 0 ]]; then
-    gen3_log_info "gen3_logs_ubh_save" "saving $totalDocs to /_bulk"
+    gen3_log_info "saving $totalDocs to /_bulk"
     cat "$newDocFile" 1>&2
     # /_bulk update the documents
     if gen3_retry gen3_logs_curl200 "$GEN3_UBH/infodoc/_bulk" -i -X POST "--data-binary" "@$newDocFile" > "$resultFile"; then
       jq -r . < "$resultFile" 1>&2
     else
-      gen3_log_err "gen3_logs_ubh_save" "failed to post /_bulk update"
+      gen3_log_err "failed to post /_bulk update"
       cat "$resultFile" 1>&2
       resultCode=1
     fi
   else
-    gen3_log_info "gen3_logs_ubh_save" "no new user data found in vpc $vpcName"
+    gen3_log_info "no new user data found in vpc $vpcName"
   fi
   
   rm "$resultFile"

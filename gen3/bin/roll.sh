@@ -56,7 +56,7 @@ gen3_roll() {
   local manifestPath
   manifestPath="$(g3k_manifest_path)"
   if [[ ! -f "$manifestPath" ]]; then
-    gen3_log_err "gen3_roll" "manifest does not exist - $manifestPath"
+    gen3_log_err "manifest does not exist - $manifestPath"
     return 1
   fi
 
@@ -65,7 +65,7 @@ gen3_roll() {
   if ! templatePath="$(gen3 gitops rollpath "$depName")"; then
     return 1
   fi
-  gen3_log_info "gen3_roll" "roll selected template - $templatePath"
+  gen3_log_info "roll selected template - $templatePath"
 
   # Get the service name, so we can verify it's in the manifest
   local serviceName
@@ -73,13 +73,13 @@ gen3_roll() {
 
   if g3k_config_lookup ".versions[\"$serviceName\"]" < "$manifestPath" > /dev/null 2>&1; then
     if ! (g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -); then
-      gen3_log_err "gen3_roll" "bailing out of roll $serviceName"
+      gen3_log_err "bailing out of roll $serviceName"
       return 1
     fi
     # update network policy - disable for now
     gen3 kube-setup-networkpolicy service "$serviceName"
   else
-    gen3_log_warn "gen3_roll" "not rolling $serviceName - no manifest entry in $manifestPath"
+    gen3_log_warn "not rolling $serviceName - no manifest entry in $manifestPath"
     return 1
   fi
 

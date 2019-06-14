@@ -93,7 +93,7 @@ EOM
 #
 gen3_net_cidr_access() {
   if [[ $# -lt 2 ]]; then
-    gen3_log_err "gen3_net_cidr_access" "must specify at least name and 1 cidr: $@"
+    gen3_log_err "must specify at least name and 1 cidr: $@"
     return 1
   fi
   local name
@@ -158,7 +158,7 @@ gen3_net_s3_access() {
   if [[ (! -f "$awsCacheFile") || (! -f "$s3CacheFile") ]] || (gen3_time_since ipranges_sync is 900); then
     curl -s https://ip-ranges.amazonaws.com/ip-ranges.json -o "$awsCacheFile"
     if ! (jq -e -r '.prefixes | map(select(.service=="S3" and .region=="us-east-1"))' < "$awsCacheFile" ) > "$s3CacheFile"; then
-      gen3_log_err "gen3_net_s3_access" "failed to refresh AWS address ranges"
+      gen3_log_err "failed to refresh AWS address ranges"
       return 1
     fi
   fi
@@ -175,7 +175,7 @@ gen3_net_s3_access() {
 #
 gen3_net_db_access() {
   if [[ $# -lt 1 ]]; then
-    gen3_log_err "gen3_net_db_access" "require serviceName argument"
+    gen3_log_err "require serviceName argument"
     return 1
   fi
   local serviceName
@@ -185,7 +185,7 @@ gen3_net_db_access() {
   hostname="$(gen3 db creds "$serviceName" | jq -r .db_host)"
   ip="$(dig +short "$hostname")"
   if ! gen3_net_isIp "$ip"; then
-    gen3_log_err "gen3_net_db_access" "unable to determine address of $serviceName database"
+    gen3_log_err "unable to determine address of $serviceName database"
     return 1
   fi
   gen3_net_cidr_access "netpolicy-db$serviceName" "$ip/32" | jq -r -e --arg serviceName "$serviceName" '.spec.podSelector = { "matchLabels": { "app":$serviceName  } }'
@@ -200,7 +200,7 @@ gen3_net_db_access() {
 #
 gen3_net_bydb_access() {
   if [[ $# -lt 1 ]]; then
-    gen3_log_err "gen3_net_bydb_access" "require serviceName argument"
+    gen3_log_err "require serviceName argument"
     return 1
   fi
   local serviceName
@@ -217,7 +217,7 @@ gen3_net_bydb_access() {
 gen3_net_ingress_to_app() {
   local app
   if [[ $# -lt 2 ]]; then
-    gen3_log_err "gen3_net_ingress_to_app" "empty spec $@"
+    gen3_log_err "empty spec $@"
     return 0
   fi
   app="$1"
@@ -250,7 +250,7 @@ EOM
 gen3_net_egress_to_app() {
   local app
   if [[ $# -lt 2 ]]; then
-    gen3_log_err "gen3_net_ingress_to_app" "empty spec $@"
+    gen3_log_err "empty spec $@"
     return 0
   fi
   app="$1"

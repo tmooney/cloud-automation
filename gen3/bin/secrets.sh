@@ -82,12 +82,12 @@ gen3_secrets_commit() {
 
       # assert there are no unstaged or uncommitted files
       if [[ ! -z "$(git status --porcelain)" ]]; then
-        gen3_log_info "gen3_secrets_commit" "commiting changes to $(gen3_secrets_folder)"
+        gen3_log_info "commiting changes to $(gen3_secrets_folder)"
         git add .
         git commit -n -m "$message"
       fi
 
-      gen3_log_info "gen3_secrets_commit" "attempting to update secrets backup"
+      gen3_log_info "attempting to update secrets backup"
       git push -f -u secrets_backup master || true
     )
     return 0
@@ -110,7 +110,7 @@ gen3_secrets_sync() {
     local credsFile
     credsFile="$(gen3_secrets_folder)/creds.json"
     if [[ ! -f "$credsFile" ]]; then
-      gen3_log_err "gen3_secrets_sync_creds" "creds.json file not found at $credsFile"
+      gen3_log_err "creds.json file not found at $credsFile"
       return 1
     fi
 
@@ -165,7 +165,7 @@ gen3_secrets_sync() {
                 if [[ -f "$secretValueFile" && "$secretValueFile" =~ ^[a-zA-Z0-9][^\ ]*[a-zA-Z0-9]$ && ! "$secretValueFile" =~ \.swp$ ]]; then
                   flags="$flags --from-file=$secretValueFile"
                 else
-                  gen3_log_info "gen3_secrets_sync" "ignoring funny secrets file g3auto/$serviceName/$secretValueFile"
+                  gen3_log_info "ignoring funny secrets file g3auto/$serviceName/$secretValueFile"
                 fi
               done
               if [[ -n "$flags" ]]; then
@@ -200,7 +200,7 @@ gen3_secrets_decode() {
   shift
   tempFile="$(mktemp "$XDG_RUNTIME_DIR/secret.json_XXXXX")"
   if ! g3kubectl get secrets "$secretName" -ojson > "$tempFile"; then
-    gen3_log_err "gen3_secrets_decode" "no secret $secretName"
+    gen3_log_err "no secret $secretName"
     rm $tempFile
     return 1
   fi
@@ -211,7 +211,7 @@ gen3_secrets_decode() {
     if jq -e -r ".data[\"$keyName\"]" < "$tempFile" > /dev/null 2>&1; then
       jq -e -r ".data[\"$keyName\"]" < "$tempFile" | base64 --decode
     else
-      gen3_log_err "gen3_secrets_decode" "$secretName has no key $keyName"
+      gen3_log_err "$secretName has no key $keyName"
       result=1
     fi
   else

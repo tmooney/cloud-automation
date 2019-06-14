@@ -206,7 +206,7 @@ gen3_logs_rawlog_search() {
     pageMax="all"
     pageIt=0
   else
-    gen3_log_err "gen3_logs_rawlog_search" "invalid page $pageNum - setting to 0"
+    gen3_log_err "invalid page $pageNum - setting to 0"
     pageIt=0
     pageMax=1
   fi
@@ -233,7 +233,7 @@ EOM
     # check integrity of result
     errStr="$(jq -r .error < "$jsonFile")"
     if [[ "$errStr" != null ]]; then
-      gen3_log_err "gen3_logs_rawlog_search" "error from server"
+      gen3_log_err "error from server"
       cat - 1>&2 <<EOM
 $errStr
 EOM
@@ -242,7 +242,7 @@ EOM
       return 1
     fi
     if ! jq -r .hits.total > /dev/null 2>&1 < $jsonFile; then
-      gen3_log_err "gen3_logs_rawlog_search" "unable to parse search result"
+      gen3_log_err "unable to parse search result"
       cat "$jsonFile" 1>&2
       rm "$jsonFile"
       return 1
@@ -268,12 +268,12 @@ EOM
       fi
     fi
     rm "$jsonFile"
-    gen3_log_info "gen3_logs_rawlog_search" "total_records=$totalRecs, pageSize=1000, pageMin=$pageMin, pageMax=$pageMax, lastPage=$pageIt"
+    gen3_log_info "total_records=$totalRecs, pageSize=1000, pageMin=$pageMin, pageMax=$pageMax, lastPage=$pageIt"
     let pageIt+=1
   done
 
   if [[ $pageIt -lt $pageMax && $pageMax -gt 10 ]]; then
-    gen3_log_err "gen3_logs_rawlog_search" "Only retrieved $pageIt of $pageMax pages - 10000 record max result size"
+    gen3_log_err "Only retrieved $pageIt of $pageMax pages - 10000 record max result size"
   fi
 }
 

@@ -58,7 +58,12 @@ test_is_number() {
   ! gen3_is_number -1; because $? "is_number does not recognize negative numbers"
 }
 
+test_callstack() {
+  [[ "$(gen3_callstack)" == "test_callstack" ]]; because $? "gen3_funcname gets it right: $(gen3_funcname)"
+}
+
 shunit_runtest "test_semver" "local,utils"
+shunit_runtest "test_callstack" "local,utils"
 shunit_runtest "test_colors" "local,utils"
 shunit_runtest "test_env" "local,utils"
 shunit_runtest "test_is_number" "local,utils"

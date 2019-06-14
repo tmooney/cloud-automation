@@ -26,7 +26,7 @@ gen3_r53_gen_skeleton() {
   k8sFile="$(mktemp "$XDG_RUNTIME_DIR/services.json_XXXXXX")"
   
   if ! g3kubectl get services -o json --all-namespaces | jq -e -r '.items | map(select(.spec.type == "LoadBalancer")) |map( {"ns":.metadata.namespace, "hostname":.status.loadBalancer.ingress[0].hostname})' > "$k8sFile"; then
-    gen3_log_err "gen3_r53_skeleton" "failed to retrieve services from k8s"
+    gen3_log_err "failed to retrieve services from k8s"
     return 1
   fi
   local it
@@ -88,7 +88,7 @@ gen3_r53_apply_skeleton() {
   local skelFile
   local hostedZoneId
   if [[ $# -lt 2 || -z "$1" || -z "$2" ]]; then
-    gen3_log_err "gen3_r53_apply_skeleton" "must specify host-zone and skeleton arguments"
+    gen3_log_err "must specify host-zone and skeleton arguments"
     return 1
   fi
   hostedZoneId="$1"
@@ -96,7 +96,7 @@ gen3_r53_apply_skeleton() {
   skelFile="$1"
   shift
   if [[ ! -f "$skelFile" ]]; then
-    gen3_log_err "gen3_r53_apply_skeleton" "skeleton file does not exist $skelFile"
+    gen3_log_err "skeleton file does not exist $skelFile"
     return 1
   fi
   aws route53 change-resource-record-sets --hosted-zone-id "$hostedZoneId" --change-batch "file://$skelFile"

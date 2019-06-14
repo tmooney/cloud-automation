@@ -10,7 +10,7 @@ test_secrets() {
   [[ "$(gen3_secrets_folder)" == "$WORKSPACE/$vpc_name" ]]; because $? "setting vpc_name should affect secrets folder"
   if [[ ! "$(gen3_secrets_folder)" == "$WORKSPACE/$vpc_name" ]]; then
     # tests below are destructive - do not run if not in test folder
-    gen3_log_err "test_secrets" "bailing out - unexpected secrets folder location: $(gen3_secrets_folder)"
+    gen3_log_err "bailing out - unexpected secrets folder location: $(gen3_secrets_folder)"
     return 1
   fi
   /bin/rm -rf "$WORKSPACE"

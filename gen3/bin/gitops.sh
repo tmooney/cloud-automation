@@ -19,7 +19,7 @@ help() {
 _check_manifest_global_diff() {
   local keyName=$1
   if [[ -z "$keyName" ]]; then
-    gen3_log_err "_check_manifest_global_diff: keyName argument missing"
+    gen3_log_err "keyName argument missing"
     return 1;
   fi
 
@@ -569,7 +569,7 @@ gen3_roll_path() {
   depName="$1"
   shift
   if [[ -z "$depName" ]]; then
-    gen3_log_err "gen3_roll_path" "roll deployment name not specified"
+    gen3_log_err "roll deployment name not specified"
     return 1
   fi
   if [[ -f "$depName" ]]; then # path to yaml given
@@ -597,7 +597,7 @@ gen3_roll_path() {
   if [[ -f "$templatePath" ]]; then
     return 0
   else
-    gen3_log_err "gen3_roll_path" "roll path does not exist: $templatePath"
+    gen3_log_err "roll path does not exist: $templatePath"
     return 1
   fi
 }
