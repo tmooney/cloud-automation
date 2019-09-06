@@ -16,6 +16,10 @@ customizes the portal to work with the brain commons' dictionary.
 Second, the optional `tier_access_level` property in the `global` object of `manifest.json` determines the access level of a common. Valid options for `tier_access_level` are `libre`, `regular` and `private`. Common will be treated as `private` by default.
 For `regular` level data commons, there's another configuration environment variable `tier_access_limit`, which is the minimum visible count for aggregation results. By default set to 1000. 
 
+Additionally, the optional `use_indexd_authz` property in the `global` object of `manifest.json` determines whether the
+indexd `acl` field or `authz` field should be used to check for unmapped files. Prior to the deployment of centralized auth,
+the acl field is used, after its deployment, the authz field is used.
+
 The portal includes support for several customization profiles in its code base in various files under the [data/config](https://github.com/uc-cdis/data-portal/tree/master/data/config)
 and [custom/](https://github.com/uc-cdis/data-portal/tree/master/custom) folders.
 An environment may also define its own `gitops` profile by installing files
