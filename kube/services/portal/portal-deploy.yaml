@@ -121,6 +121,12 @@ spec:
                 name: manifest-global
                 key: indexd_url
                 optional: true
+          - name: USE_INDEXD_AUTHZ
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: use_indexd_authz
+                optional: true
           - name: WORKSPACE_URL
             valueFrom:
               configMapKeyRef:
