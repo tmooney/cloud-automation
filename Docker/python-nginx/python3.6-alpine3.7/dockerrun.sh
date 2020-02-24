@@ -97,7 +97,7 @@ fi
   if [ ! -e /var/run/gen3/uwsgi.sock ]; then
     echo "WARNING: /var/run/gen3/uwsgi.sock does not exist!!!"
   fi
-  run uwsgi --ini /etc/uwsgi/uwsgi.ini
+  run NEW_RELIC_CONFIG_FILE=/etc/newrelic/newrelic.ini newrelic-admin run-program uwsgi --ini /etc/uwsgi/uwsgi.ini
 ) &
 run nginx -g 'daemon off;'
 wait
