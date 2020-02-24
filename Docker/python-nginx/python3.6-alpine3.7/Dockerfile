@@ -6,6 +6,7 @@ FROM python:3.6-alpine3.7
 # https://github.com/nginxinc/docker-nginx/blob/f3fc4d5753f0ebb9107738183b9c5cea1bf3f618/mainline/alpine/Dockerfile
 
 ENV NGINX_VERSION 1.15.3
+ENV NEWRELIC_VERSION 5.6.0.135
 
 RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& CONFIG="\
@@ -70,7 +71,8 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 		geoip-dev \
 	&& curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz -o nginx.tar.gz \
 	&& curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc  -o nginx.tar.gz.asc \
-	&& export GNUPGHOME="$(mktemp -d)" \
+        && curl -fSL https://download.newrelic.com/python_agent/release/newrelic-$NEWRELIC_VERSION.tar.gz -o newrelic.tar.gz \
+        && export GNUPGHOME="$(mktemp -d)" \
 	&& found=''; \
 	for server in \
 		ha.pool.sks-keyservers.net \
@@ -137,7 +139,12 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	\
 	# forward request and error logs to docker log collector
 	&& ln -sf /dev/stdout /var/log/nginx/access.log \
-	&& ln -sf /dev/stderr /var/log/nginx/error.log
+	&& ln -sf /dev/stderr /var/log/nginx/error.log \
+        && cd / \
+        && tar -zxC /usr/src -f newrelic.tar.gz \
+        && rm newrelic.tar.gz \
+        && cd /usr/src/newrelic-$NEWRELIC_VERSION \
+        && python setup.py install
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY uwsgi.conf /etc/nginx/sites-available/
@@ -152,9 +159,6 @@ EXPOSE 443
 
 # Install uWSGI
 RUN apk add --no-cache uwsgi-python3
-
-# Install New Relic Python agent
-pip install newrelic
 
 # Copy the base uWSGI ini file to enable default dynamic uwsgi process number
 COPY uwsgi.ini /etc/uwsgi/
