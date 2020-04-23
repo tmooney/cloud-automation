@@ -75,6 +75,11 @@ resource "aws_ami_copy" "squid_ami" {
   }
 }
 
+provider "aws" {
+  alias = "useast1"
+  region = "us-east-1"
+}
+
 data "aws_ami" "public_squid_ami" {
   count       = "${var.deploy_single_proxy ? 1 : 0 }"
   most_recent = true
@@ -85,6 +90,7 @@ data "aws_ami" "public_squid_ami" {
   }
 
   owners = ["${var.ami_account_id}"]
+  provider = "aws.useast1"
 }
 
 

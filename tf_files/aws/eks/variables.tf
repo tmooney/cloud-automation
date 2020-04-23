@@ -76,6 +76,12 @@ variable "iam-serviceaccount" {
   default = false
 }
 
+variable "availability_zones" {
+  description = "AZ to be used by EKS nodes"
+  type        = "list"
+  default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
+}
+
 variable "domain_test" {
   description = "url for the lambda function to check for the proxy"
   default     = "www.google.com"

@@ -161,7 +161,10 @@ OPENID_CONNECT:
 
 ### DEPRECATED and replaced by OPENID_CONNECT + LOGIN_OPTIONS configs
 ENABLED_IDENTITY_PROVIDERS:
-
+  default: "google"
+  providers: 
+    google:
+      name: "Login from Google"
 #
 # MOVED TO fence_config_public.yaml
 #
